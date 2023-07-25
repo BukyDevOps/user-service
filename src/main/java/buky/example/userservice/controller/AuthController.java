@@ -1,5 +1,6 @@
 package buky.example.userservice.controller;
 
+import buky.example.userservice.dto.LoginDto;
 import buky.example.userservice.model.User;
 import buky.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginDto loginDto) {
+        return userService.login(loginDto);
+    }
 
     @PostMapping("/registration")
     public User registration(@RequestBody User user) {
