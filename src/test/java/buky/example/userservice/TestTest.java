@@ -10,6 +10,7 @@ public class TestTest {
 
     @Test
     public void test() {
+        // Test comment
         assert(true);
     }
 }
