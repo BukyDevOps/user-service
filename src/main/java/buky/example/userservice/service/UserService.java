@@ -1,10 +1,12 @@
 package buky.example.userservice.service;
 
 import buky.example.userservice.dto.LoginDto;
+import buky.example.userservice.exceptions.ActiveReservationExistsException;
 import buky.example.userservice.exceptions.BadCredentialsException;
 import buky.example.userservice.exceptions.NotFoundException;
 import buky.example.userservice.exceptions.UsernameExistsException;
 import buky.example.userservice.model.User;
+import buky.example.userservice.model.enums.Role;
 import buky.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,8 +32,28 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public void deleteUser(String username) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found!"));
+
+        if(userHasActiveReservations(user))
+            throw new ActiveReservationExistsException("Active reservation exists!");
+
+
+        user.setActive(false);
+        if(user.getRole().equals(Role.HOST))
+            deleteMyAccomodations(user.getId());
+
+        userRepository.save(user);
+    }
+
+    private void deleteMyAccomodations(Long id) {
+        //TODO obrisati sav smjestaj, kafka opet
+    }
+
+    private boolean userHasActiveReservations(User user) {
+        //TODO kafka i to
+        return false;
     }
 
     public User registration(User user) {
@@ -54,5 +76,15 @@ public class UserService {
         if(!usr.getPassword().equals(loginDto.getPassword())) throw new BadCredentialsException("Bad credentials!");
 
         return "Success!";
+    }
+
+    public User updateUser(String username, User updatedUser) {
+        if(userRepository.findUserByUsername(username).isEmpty()) throw new NotFoundException("User is not found!");
+
+        if(!username.equals(updatedUser.getUsername())
+                && userRepository.findUserByUsername(updatedUser.getUsername()).isPresent())
+            throw new UsernameExistsException("Username already exists!");
+
+        return userRepository.save(updatedUser);
     }
 }
