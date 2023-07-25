@@ -1,9 +1,26 @@
+version: '3.9'
+
 services:
   postgres:
     image: 'postgres:latest'
     environment:
-      - 'POSTGRES_DB=userDB'
-      - 'POSTGRES_PASSWORD=password'
-      - 'POSTGRES_USER=admin'
+      - 'POSTGRES_DB=BukyUsers'
+      - 'POSTGRES_PASSWORD=postgres'
+      - 'POSTGRES_USER=postgres'
     ports:
-      - '5432'
+      - '5433:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: 'dpage/pgadmin4:latest'
+    environment:
+      - 'PGADMIN_DEFAULT_EMAIL=admin@gmail.com'
+      - 'PGADMIN_DEFAULT_PASSWORD=password'
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+
+volumes:
+  pg_data:
