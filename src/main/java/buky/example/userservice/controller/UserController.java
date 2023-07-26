@@ -4,6 +4,8 @@ import buky.example.userservice.exceptions.NotFoundException;
 import buky.example.userservice.model.User;
 import buky.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping()
+    @PreAuthorize("hasAnyAuthority('HOST')")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
@@ -27,15 +30,13 @@ public class UserController {
         return user.orElseThrow(() -> new NotFoundException("User with this id is not found!"));
     }
 
-    @PutMapping("/{username}")
-    public User updateUserById(@PathVariable String username, @RequestBody User updatedUser) {
-        //TODO iz tokena uzimati
-        return userService.updateUser(username, updatedUser);
+    @PutMapping()
+    public User updateUserById(Authentication authentication, @RequestBody User updatedUser) {
+        return userService.updateUser(authentication.getName(), updatedUser);
     }
 
-    @DeleteMapping("/{username}")
-    public void updateUserById(@PathVariable String username) {
-        //TODO iz tokena uzimati kad se odradi security
-        userService.deleteUser(username);
+    @DeleteMapping()
+    public void deleteUserById(Authentication authentication) {
+        userService.deleteUser(authentication.getName());
     }
 }

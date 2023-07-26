@@ -1,14 +1,13 @@
 package buky.example.userservice.service;
 
-import buky.example.userservice.dto.LoginDto;
 import buky.example.userservice.exceptions.ActiveReservationExistsException;
-import buky.example.userservice.exceptions.BadCredentialsException;
 import buky.example.userservice.exceptions.NotFoundException;
 import buky.example.userservice.exceptions.UsernameExistsException;
 import buky.example.userservice.model.User;
 import buky.example.userservice.model.enums.Role;
 import buky.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -62,29 +62,21 @@ public class UserService {
         if(usr.isPresent()) throw new UsernameExistsException("Username already exists!");
 
         user.setActive(true);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return saveUser(user);
     }
 
-    public String login(LoginDto loginDto) {
-        User usr = userRepository.findUserByUsername(loginDto.getUsername())
-                .orElseThrow(() -> new NotFoundException("User is not found!"));
-
-        if(!usr.getActive()) throw new NotFoundException("User is not found!");
-
-        //TODO security
-
-        if(!usr.getPassword().equals(loginDto.getPassword())) throw new BadCredentialsException("Bad credentials!");
-
-        return "Success!";
-    }
-
     public User updateUser(String username, User updatedUser) {
-        if(userRepository.findUserByUsername(username).isEmpty()) throw new NotFoundException("User is not found!");
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User is not found!"));
 
         if(!username.equals(updatedUser.getUsername())
                 && userRepository.findUserByUsername(updatedUser.getUsername()).isPresent())
             throw new UsernameExistsException("Username already exists!");
 
+        if(!updatedUser.getPassword().equals(user.getPassword())) {
+            updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
         return userRepository.save(updatedUser);
     }
 }
