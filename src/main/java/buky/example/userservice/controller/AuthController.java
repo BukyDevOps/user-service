@@ -33,10 +33,10 @@ public class AuthController {
     }
 
     @GetMapping("/authenticate")
-    public ResponseEntity<Void> authenticateUser(@RequestHeader("Authorization") String jwtToken,
+    public ResponseEntity<Long> authenticateUser(@RequestHeader("Authorization") String jwtToken,
                                                  @RequestHeader("X-User-Role") List<String> userRole) {
         if (tokenUtils.isValidUser(jwtToken, userRole)) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(tokenUtils.getUserIdFromToken(jwtToken));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

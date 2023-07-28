@@ -45,6 +45,7 @@ public class AuthService {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", usr.getRole());
+        claims.put("userId", usr.getId());
 
         var user = (JWTUserDetails) authentication.getPrincipal();
 
