@@ -1,15 +1,13 @@
 package buky.example.userservice.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -142,6 +140,26 @@ public class TokenUtils {
 
         return (username != null
                 && username.equals(userDetails.getUsername()));
+    }
+
+    public Boolean isValidUser(String token, List<String> requiredRoles){
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET)
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String userRole = claims.get("role", String.class);
+
+            return requiredRoles.contains(userRole);
+
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
     private Boolean isCreatedBeforeLastPasswordReset(Date created, Date lastPasswordReset) {
