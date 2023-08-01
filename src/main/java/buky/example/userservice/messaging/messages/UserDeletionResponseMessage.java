@@ -14,5 +14,6 @@ import java.io.Serializable;
 @Builder
 public class UserDeletionResponseMessage implements Serializable {
     Long userId;
+    Role role;
     boolean permitted;
 }
