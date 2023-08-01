@@ -3,6 +3,7 @@ package buky.example.userservice.messaging;
 import buky.example.userservice.messaging.messages.AccommodationRatingMessage;
 import buky.example.userservice.messaging.messages.HostRatingMessage;
 import buky.example.userservice.messaging.messages.NotificationMessage;
+import buky.example.userservice.messaging.messages.UserDeletionResponseMessage;
 import buky.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -32,5 +33,10 @@ public class KafkaConsumer {
         if(notificationMessage != null) {
             producer.send("notifications-topic", notificationMessage);
         }
+    }
+
+    @KafkaListener(topics = "user-deletion-permission-topic",containerFactory = "accommodationRatingListenerContainerFactory")
+    public void userDeletionPermission(UserDeletionResponseMessage message) {
+        userService.performDeletion(message);
     }
 }

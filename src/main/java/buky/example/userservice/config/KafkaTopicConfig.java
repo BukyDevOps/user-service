@@ -69,4 +69,16 @@ public class KafkaTopicConfig {
     public NewTopic notificationsTopic() {
         return new NewTopic("notifications-topic", 1, (short) 1);
     }
+
+    @Bean
+    public NewTopic userDeletionRequest() {
+        return new NewTopic("user-deletion-request-topic", 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic userDeletion() {
+        return new NewTopic("user-deletion-permission-topic", 1, (short) 1);
+    }
+
+
 }
