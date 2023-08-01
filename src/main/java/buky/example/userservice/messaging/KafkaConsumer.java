@@ -35,7 +35,7 @@ public class KafkaConsumer {
         }
     }
 
-    @KafkaListener(topics = "user-deletion-permission-topic",containerFactory = "accommodationRatingListenerContainerFactory")
+    @KafkaListener(topics = "user-deletion-permission-topic",containerFactory = "userDeletionResponse")
     public void userDeletionPermission(UserDeletionResponseMessage message) {
         userService.performDeletion(message);
     }

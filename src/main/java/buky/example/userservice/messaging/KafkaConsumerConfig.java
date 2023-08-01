@@ -2,6 +2,7 @@ package buky.example.userservice.messaging;
 
 import buky.example.userservice.messaging.messages.AccommodationRatingMessage;
 import buky.example.userservice.messaging.messages.HostRatingMessage;
+import buky.example.userservice.messaging.messages.UserDeletionResponseMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -66,6 +67,15 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, AccommodationRatingMessage> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(createConsumerFactory(AccommodationRatingMessage.class));
+        log.info("Configure concurrent consumer Kafka");
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, UserDeletionResponseMessage> userDeletionResponse() {
+        ConcurrentKafkaListenerContainerFactory<String, UserDeletionResponseMessage> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(createConsumerFactory(UserDeletionResponseMessage.class));
         log.info("Configure concurrent consumer Kafka");
         return factory;
     }
