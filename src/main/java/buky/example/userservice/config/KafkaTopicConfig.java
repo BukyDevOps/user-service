@@ -46,16 +46,6 @@ public class KafkaTopicConfig {
     }
 
     @Bean
-    public NewTopic productTopic() {
-        return new NewTopic("product", 1, (short) 1);
-    }
-
-    @Bean
-    public NewTopic productTopic2() {
-        return new NewTopic("topic2", 1, (short) 1);
-    }
-
-    @Bean
     public NewTopic hostRatingTopic() {
         return new NewTopic("host-rating", 1, (short) 1);
     }
