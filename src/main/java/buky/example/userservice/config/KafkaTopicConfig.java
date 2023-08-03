@@ -46,16 +46,6 @@ public class KafkaTopicConfig {
     }
 
     @Bean
-    public NewTopic productTopic() {
-        return new NewTopic("product", 1, (short) 1);
-    }
-
-    @Bean
-    public NewTopic productTopic2() {
-        return new NewTopic("topic2", 1, (short) 1);
-    }
-
-    @Bean
     public NewTopic hostRatingTopic() {
         return new NewTopic("host-rating", 1, (short) 1);
     }
@@ -69,4 +59,16 @@ public class KafkaTopicConfig {
     public NewTopic notificationsTopic() {
         return new NewTopic("notifications-topic", 1, (short) 1);
     }
+
+    @Bean
+    public NewTopic userDeletionRequest() {
+        return new NewTopic("user-deletion-request-topic", 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic userDeletion() {
+        return new NewTopic("user-deletion-permission-topic", 1, (short) 1);
+    }
+
+
 }

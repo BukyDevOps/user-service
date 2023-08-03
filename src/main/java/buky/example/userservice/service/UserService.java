@@ -3,12 +3,10 @@ package buky.example.userservice.service;
 import buky.example.userservice.exceptions.ActiveReservationExistsException;
 import buky.example.userservice.exceptions.NotFoundException;
 import buky.example.userservice.exceptions.UsernameExistsException;
-import buky.example.userservice.messaging.messages.AccommodationRatingMessage;
-import buky.example.userservice.messaging.messages.HostRatingMessage;
-import buky.example.userservice.messaging.messages.NotificationMessage;
+import buky.example.userservice.messaging.KafkaProducer;
+import buky.example.userservice.messaging.messages.*;
 import buky.example.userservice.model.User;
 import buky.example.userservice.model.enums.NotificationType;
-import buky.example.userservice.model.enums.Role;
 import buky.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +22,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final KafkaProducer publisher;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -41,30 +40,26 @@ public class UserService {
         User user = userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found!"));
 
-        if(userHasActiveReservations(user))
-            throw new ActiveReservationExistsException("Active reservation exists!");
-
-
-        user.setActive(false);
-        if(user.getRole().equals(Role.HOST))
-            deleteMyAccommodations(user.getId());
-
-        userRepository.save(user);
+        requestUserDeletion(UserDeletionRequestMessage
+                .builder()
+                .userId(user.getId())
+                .userType(user.getRole())
+                .build()
+        );
     }
 
-    private void deleteMyAccommodations(Long id) {
-        //TODO obrisati sav smjestaj, kafka opet
-    }
+    public void performDeletion(UserDeletionResponseMessage message) {
+        if(!message.isPermitted())
+            throw new ActiveReservationExistsException("Deletion Now Allowed! User has active reservations!");
 
-    private boolean userHasActiveReservations(User user) {
-        //TODO kafka i to
-        return false;
+        //returns number of instances affected (1 if found, 0 otherwise)...
+        userRepository.logicalDelete(message.getUserId());
     }
 
     public User registration(User user) {
         Optional<User> usr = userRepository.findUserByUsername(user.getUsername());
 
-        if(usr.isPresent()) throw new UsernameExistsException("Username already exists!");
+        if (usr.isPresent()) throw new UsernameExistsException("Username already exists!");
 
         user.setRatingCount(0);
         user.setRating(0.0);
@@ -77,11 +72,11 @@ public class UserService {
         User user = userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User is not found!"));
 
-        if(!username.equals(updatedUser.getUsername())
+        if (!username.equals(updatedUser.getUsername())
                 && userRepository.findUserByUsername(updatedUser.getUsername()).isPresent())
             throw new UsernameExistsException("Username already exists!");
 
-        if(!updatedUser.getPassword().equals(user.getPassword())) {
+        if (!updatedUser.getPassword().equals(user.getPassword())) {
             updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
         updatedUser.setRating(user.getRating());
@@ -93,17 +88,16 @@ public class UserService {
         User user = userRepository.findById(message.getHostId()).orElse(null);
         User guest = userRepository.findById(message.getUserId()).orElse(null);
 
-        if(user == null || guest == null) return null;
+        if (user == null || guest == null) return null;
 
         double newRating;
 
-        if(message.getOldRatingValue() == 0) {
+        if (message.getOldRatingValue() == 0) {
             newRating = (user.getRatingCount() * user.getRating() + message.getRatingValue())
                     / (user.getRatingCount() + 1);
             user.setRating(newRating);
             user.setRatingCount(user.getRatingCount() + 1);
-        }
-        else {
+        } else {
             newRating = (user.getRatingCount() * user.getRating() + message.getRatingValue() - message.getOldRatingValue())
                     / user.getRatingCount();
             user.setRating(newRating);
@@ -125,15 +119,22 @@ public class UserService {
         User user = userRepository.findById(message.getHostId()).orElse(null);
         User guest = userRepository.findById(message.getUserId()).orElse(null);
 
-        if(user == null || guest == null) return null;
+        if (user == null || guest == null) return null;
 
         return NotificationMessage.builder()
                 .notificationType(buky.example.userservice.messaging.messages.enums.NotificationType.ACCOMMODATION_RATING)
-                .message("User: " + guest.getUsername() + "rated your accommodation with "+message.getRatingValue()+" stars!")
+                .message("User: " + guest.getUsername() + "rated your accommodation with " + message.getRatingValue() + " stars!")
                 .subjectId(message.getAccommodationId())
                 .receiverId(message.getHostId())
                 .processed(!user.getNotificationTypes().contains(NotificationType.ACCOMMODATION_RATING))
                 .createdAt(LocalDateTime.now())
                 .build();
     }
+
+    //TODO sve kafka stvari (bar publish deo) izdvojiti u publisher servis, koji cita neki topics.yaml (ovo cita i TopicConfig),
+    //TODO ima uvid u sve topice i metode za notify... Encapsulira sve publisher stvari...
+    private void requestUserDeletion(UserDeletionRequestMessage message) {
+        publisher.send("user-deletion-request-topic", message);
+    }
+
 }
