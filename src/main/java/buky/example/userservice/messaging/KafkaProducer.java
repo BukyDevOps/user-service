@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @NoArgsConstructor
@@ -26,17 +27,20 @@ public class KafkaProducer {
         CompletableFuture<SendResult<String, Serializable>> future = CompletableFuture.supplyAsync(() -> {
             try {
                 return kafkaTemplate.send(topic, message).get();
-            } catch (Exception e) {
-                throw new CompletionException(e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
+            return null;
         });
 
-        future.thenAccept(result -> {
-            log.info("Message sent successfully with offset = {}", result.getRecordMetadata().offset());
-        }).exceptionally(throwable -> {
+        future.thenAccept(result ->
+            log.info("Message sent successfully with offset = {}", result.getRecordMetadata().offset())
+        ).exceptionally(throwable -> {
             Throwable originalException = throwable.getCause(); // Get the original exception
             log.error("Unable to send message = {} due to: {}", message.toString(), originalException.getMessage());
-            return null; // TODO or provide a default value or throw another exception.
+            return null;
         });
 
 
