@@ -24,9 +24,11 @@ public class TokenUtils {
     @Value("Authorization")
     private String AUTH_HEADER;
 
+    private static final String BEARER_CONST = "Bearer ";
+
     private static final String AUDIENCE_WEB = "web";
 
-    private final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
+    private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 
     public String generateToken(String username, Map<String, Object> claims) {
 
@@ -39,7 +41,7 @@ public class TokenUtils {
                 .signWith(SIGNATURE_ALGORITHM, SECRET).compact();
     }
 
-    private void updateClaims(String username, Map<String, Object> claims){
+    private void updateClaims(String username, Map<String, Object> claims) {
         claims.put("iss", APP_NAME);
         claims.put("sub", username);
         claims.put("aud", generateAudience());
@@ -56,7 +58,7 @@ public class TokenUtils {
     public String getToken(HttpServletRequest request) {
         String authHeader = getAuthHeaderFromHeader(request);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith(BEARER_CONST)) {
             return authHeader.substring(7);
         }
 
@@ -119,31 +121,21 @@ public class TokenUtils {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        Claims claims;
-        try {
-            claims = Jwts.parser()
-                    .setSigningKey(SECRET)
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (ExpiredJwtException ex) {
-            throw ex;
-        } catch (Exception e) {
-            claims = null;
-        }
-
-        return claims;
+        return Jwts.parser()
+                .setSigningKey(SECRET)
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        final Date created = getIssuedAtDateFromToken(token);
 
         return (username != null
                 && username.equals(userDetails.getUsername()));
     }
 
-    public Boolean isValidUser(String token, List<String> requiredRoles){
-        if (token != null && token.startsWith("Bearer ")) {
+    public Boolean isValidUser(String token, List<String> requiredRoles) {
+        if (token != null && token.startsWith(BEARER_CONST)) {
             token = token.substring(7);
         }
 
@@ -163,7 +155,7 @@ public class TokenUtils {
     }
 
     public Long getUserIdFromToken(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
+        if (token != null && token.startsWith(BEARER_CONST)) {
             token = token.substring(7);
         }
 
@@ -177,10 +169,6 @@ public class TokenUtils {
         } catch (JwtException e) {
             return null;
         }
-    }
-
-    private Boolean isCreatedBeforeLastPasswordReset(Date created, Date lastPasswordReset) {
-        return (lastPasswordReset != null && created.before(lastPasswordReset));
     }
 
     public int getExpiredIn() {
