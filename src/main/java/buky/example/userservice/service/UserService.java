@@ -5,6 +5,7 @@ import buky.example.userservice.exceptions.NotFoundException;
 import buky.example.userservice.exceptions.UsernameExistsException;
 import buky.example.userservice.messaging.KafkaProducer;
 import buky.example.userservice.messaging.messages.*;
+import buky.example.userservice.messaging.messages.enums.ReservationStatus;
 import buky.example.userservice.model.User;
 import buky.example.userservice.model.enums.NotificationType;
 import buky.example.userservice.repository.UserRepository;
@@ -109,7 +110,7 @@ public class UserService {
                 .createdAt(LocalDateTime.now())
                 .message(String.format("User: %s rated you with: %b", guest.getUsername(), message.getRatingValue()))
                 .processed(!user.getNotificationTypes().contains(NotificationType.HOST_RATING))
-                .notificationType(buky.example.userservice.messaging.messages.enums.NotificationType.HOST_RATING)
+                .notificationType(NotificationType.HOST_RATING)
                 .receiverId(user.getId())
                 .subjectId(user.getId())
                 .build();
@@ -122,7 +123,7 @@ public class UserService {
         if (user == null || guest == null) return null;
 
         return NotificationMessage.builder()
-                .notificationType(buky.example.userservice.messaging.messages.enums.NotificationType.ACCOMMODATION_RATING)
+                .notificationType(NotificationType.ACCOMMODATION_RATING)
                 .message("User: " + guest.getUsername() + "rated your accommodation with " + message.getRatingValue() + " stars!")
                 .subjectId(message.getAccommodationId())
                 .receiverId(message.getHostId())
@@ -137,4 +138,38 @@ public class UserService {
         publisher.send("user-deletion-request-topic", message);
     }
 
+    public NotificationMessage reservationStatusChanged(ReservationStatusChangedMessage message) {
+        User receiver = userRepository.findById(message.getReceiverId()).orElse(null);
+        User sender = userRepository.findById(message.getUserId()).orElse(null);
+
+        if(receiver == null || sender == null) return null;
+
+        return NotificationMessage.builder()
+                .createdAt(LocalDateTime.now())
+                .processed(checkIfProcessed(receiver, message.getStatus()))
+                .receiverId(message.getReceiverId())
+                .notificationType(setNotificationType(message.getStatus()))
+                .subjectId(message.getReservationId()).message(createMessage(sender, message.getStatus())).build();
+    }
+
+    private NotificationType setNotificationType(ReservationStatus status) {
+        switch (status){
+            case PENDING -> {return NotificationType.NEW_RESERVATION;}
+            case CANCELED -> {return NotificationType.CANCELED_RESERVATION;}
+            default -> {return NotificationType.PROCESSED_REQUEST;}
+        }
+    }
+
+    private String createMessage(User sender, ReservationStatus status) {
+        return String.format("User %s changed reservation status to: %s", sender.getUsername(), status.toString());
+    }
+
+    private Boolean checkIfProcessed(User receiver, ReservationStatus status) {
+        if(status == ReservationStatus.CANCELED)
+            return  receiver.getNotificationTypes().contains(NotificationType.CANCELED_RESERVATION);
+        else if(status == ReservationStatus.PENDING)
+            return receiver.getNotificationTypes().contains(NotificationType.NEW_RESERVATION);
+        else
+            return receiver.getNotificationTypes().contains(NotificationType.PROCESSED_REQUEST);
+    }
 }
