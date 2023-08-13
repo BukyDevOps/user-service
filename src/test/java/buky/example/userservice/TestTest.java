@@ -6,10 +6,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class UserServiceApplicationTests {
+public class TestTest {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    public void test() {
+        assert(true);
+    }
 }
