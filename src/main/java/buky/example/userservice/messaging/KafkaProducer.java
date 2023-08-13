@@ -30,7 +30,7 @@ public class KafkaProducer {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
-                e.printStackTrace();
+                return null;
             }
             return null;
         });
