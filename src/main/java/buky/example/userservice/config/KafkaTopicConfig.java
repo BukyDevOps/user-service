@@ -70,5 +70,9 @@ public class KafkaTopicConfig {
         return new NewTopic("user-deletion-permission-topic", 1, (short) 1);
     }
 
+    @Bean
+    public NewTopic reservationStatusChanged() {
+        return new NewTopic("reservation-status-changed", 1, (short) 1);
+    }
 
 }

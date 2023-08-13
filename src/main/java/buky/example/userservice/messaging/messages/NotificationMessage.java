@@ -1,6 +1,6 @@
 package buky.example.userservice.messaging.messages;
 
-import buky.example.userservice.messaging.messages.enums.NotificationType;
+import buky.example.userservice.model.enums.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
