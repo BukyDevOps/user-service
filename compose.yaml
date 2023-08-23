@@ -71,14 +71,14 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - ./buky-volume/kafka2/data:/var/lib/kafka/data
-  manager:
-    image: sheepkiller/kafka-manager
-    ports:
-      - 9000:9000
-    environment:
-      ZK_HOSTS: zookeeper:2181
-    depends_on:
-      - zookeeper
+#  manager:
+#    image: sheepkiller/kafka-manager
+#    ports:
+#      - 9000:9000
+#    environment:
+#      ZK_HOSTS: zookeeper:2181
+#    depends_on:
+#      - zookeeper
 
 volumes:
   pg_data:
