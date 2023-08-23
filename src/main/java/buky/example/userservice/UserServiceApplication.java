@@ -13,7 +13,7 @@ import java.util.List;
 
 @SpringBootApplication
 @RequiredArgsConstructor
-public class UserServiceApplication implements CommandLineRunner {
+public class UserServiceApplication {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -22,22 +22,4 @@ public class UserServiceApplication implements CommandLineRunner {
 		SpringApplication.run(UserServiceApplication.class, args);
 	}
 
-	@Override
-	public void run(String... args) throws Exception {
-		var host = User.builder()
-				.username("host")
-				.password(passwordEncoder.encode("123"))
-				.role(Role.HOST)
-				.active(true)
-				.build();
-
-		var guest = User.builder()
-				.username("guest")
-				.password(passwordEncoder.encode("123"))
-				.role(Role.GUEST)
-				.active(true)
-				.build();
-
-		userRepository.saveAll(List.of(host, guest));
-	}
 }
