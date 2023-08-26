@@ -148,11 +148,22 @@ services:
     links:
       - prometheus:prometheus
     volumes:
-      - ./monitoring/graphana/data:/var/lib/grafana
+      - ./buky-volume/graphana/data:/var/lib/grafana
+
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=password
       - GF_SERVER_DOMAIN=localhost
       - GF_LOG_MODE=console file
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter_monitoring
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    expose:
+      - 9100
+
 
 
 volumes:

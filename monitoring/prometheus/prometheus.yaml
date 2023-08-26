@@ -52,3 +52,10 @@ scrape_configs:
       - targets: [ 'host.docker.internal:8085' ]
         labels:
           application: "notification-service"
+
+  - job_name: 'node-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ 'host.docker.internal:9100' ]
+        labels:
+          application: "node-exporter"
