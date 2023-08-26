@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 /buky-volume/
+monitoring/graphana/
+./monitoring/graphana/
 
 ### STS ###
 .apt_generated
