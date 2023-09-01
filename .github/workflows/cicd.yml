@@ -14,7 +14,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
       - name: JDK Setup
         uses: actions/setup-java@v3
@@ -55,7 +55,7 @@ jobs:
 
       - name: Semantic versioning
         id: versioning
-        uses: PaulHatch/semantic-version@v4.0.2
+        uses: paulhatch/semantic-version@v5.1.0
         with:
           branch: main
           tag_prefix: "v"
@@ -69,6 +69,7 @@ jobs:
 
 
       - name: Publish Docker Image
+        needs: Build Docker Image
         run: |
           docker tag buky-users:latest ${{ secrets.DOCKER_USERNAME }}/buky-users:${{ steps.versioning.outputs.version }}
           docker push ${{ secrets.DOCKER_USERNAME }}/buky-users:${{ steps.versioning.outputs.version }}
