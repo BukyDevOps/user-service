@@ -69,7 +69,6 @@ jobs:
 
 
       - name: Publish Docker Image
-        needs: Build Docker Image
         run: |
           docker tag buky-users:latest ${{ secrets.DOCKER_USERNAME }}/buky-users:${{ steps.versioning.outputs.version }}
           docker push ${{ secrets.DOCKER_USERNAME }}/buky-users:${{ steps.versioning.outputs.version }}
