@@ -25,6 +25,11 @@ public class AuthController {
     private final AuthService authService;
     private final TokenUtils tokenUtils;
 
+    @GetMapping("")
+    public String test() {
+        return "Success!";
+    }
+
     @PostMapping("/login")
     public Token login(@RequestBody LoginDto loginDto) {
         log.info("Login successfull at: " + LocalDateTime.now());
