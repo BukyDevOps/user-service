@@ -67,6 +67,8 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/buky-users:latest .
 
+      - name: List Docker Images (After)
+        run: docker images
 
       - name: Publish Docker Image
         run: |
