@@ -55,13 +55,12 @@ jobs:
 
       - name: Semantic versioning
         id: versioning
-        uses: paulhatch/semantic-version@v4.0.2
+        uses: paulhatch/semantic-version@v5.1.0
         with:
-          branch: main
           tag_prefix: "v"
-          major_pattern: "BREAKING CHANGE:"
-          minor_pattern: "feat:"
-          format: "v${major}.${minor}.${patch}-prerelease${increment}"
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          version_format: "${major}.${minor}.${patch}-prerelease${increment}"
 
       - name: Build Docker Image
         run: |
