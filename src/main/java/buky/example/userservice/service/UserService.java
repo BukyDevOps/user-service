@@ -38,6 +38,7 @@ public class UserService {
     }
 
     public void deleteUser(String username) {
+        System.out.println("Usao u deleteUser: username=" + username);
         User user = userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found!"));
 
@@ -50,6 +51,7 @@ public class UserService {
     }
 
     public void performDeletion(UserDeletionResponseMessage message) {
+        System.out.println("Primio poruku performDeletion: message.permitted=" + message.isPermitted());
         if(!message.isPermitted())
             throw new ActiveReservationExistsException("Deletion Now Allowed! User has active reservations!");
 
@@ -132,9 +134,8 @@ public class UserService {
                 .build();
     }
 
-    //TODO sve kafka stvari (bar publish deo) izdvojiti u publisher servis, koji cita neki topics.yaml (ovo cita i TopicConfig),
-    //TODO ima uvid u sve topice i metode za notify... Encapsulira sve publisher stvari...
     private void requestUserDeletion(UserDeletionRequestMessage message) {
+        System.out.println("saljem poruku iz requestUserDeletiona: userid="+message.getUserId());
         publisher.send("user-deletion-request-topic", message);
     }
 
@@ -146,7 +147,7 @@ public class UserService {
 
         return NotificationMessage.builder()
                 .createdAt(LocalDateTime.now())
-                .processed(checkIfProcessed(receiver, message.getStatus()))
+                .processed(!checkIfProcessed(receiver, message.getStatus()))
                 .receiverId(message.getReceiverId())
                 .notificationType(setNotificationType(message.getStatus()))
                 .subjectId(message.getReservationId()).message(createMessage(sender, message.getStatus())).build();
